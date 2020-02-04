@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -36,15 +38,71 @@ func ReadYaml(data []byte) interface{} {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(out)
 	return out
 }
 
-func GetValue(yamlData interface{}, query string) {
+func GetValue(yamlData interface{}, query string) interface{} {
 	keys := strings.Split(query, ".")
 	for _, key := range keys {
-		yamlData = yamlData.(map[interface{}]interface{})[key]
+		var ok bool
+
+		if intKey, err := strconv.Atoi(key); err == nil {
+			var temp []interface{}
+			temp, ok = yamlData.([]interface{})
+			if ok {
+				if len(temp) > intKey {
+					yamlData = temp[intKey]
+				} else {
+					log.Fatalf("Error: index out of range [%d] for array of length %d", intKey, len(temp))
+				}
+			} else {
+				log.Printf("Error: got array index, but current element is not an array.")
+				log.Fatalf("Current element: %v", yamlData)
+			}
+		} else {
+			temp, ok := yamlData.(map[interface{}]interface{})
+			if ok {
+				yamlData = temp[key]
+			} else {
+				log.Printf("Error: got key, but current element is not a map.")
+				log.Fatalf("Current element: %v", yamlData)
+			}
+		}
 	}
-	yamlData = yamlData.([]interface{})[0].(string)
-	fmt.Println(yamlData)
+	return yamlData
+}
+
+func SetValue(yamlData interface{}, query string, val string, path string) {
+	data := yamlData.(map[interface{}]interface{})
+	p := reflect.ValueOf(&data).Elem()
+
+	keys := strings.Split(query, ".")
+
+	for i, key := range keys {
+		if p.Kind() == reflect.Map {
+			mapKeys := p.MapKeys()
+			for _, mapKey := range mapKeys {
+				if mapKey.Interface().(string) == key {
+					if i == len(keys) - 1 {
+						p.SetMapIndex(mapKey, reflect.ValueOf(val))
+					}
+					p = p.MapIndex(mapKey)
+					v := reflect.ValueOf(p.Interface())
+					temp := reflect.New(v.Type()).Elem()
+					temp.Set(v)
+					p = temp
+				}
+			}
+		}
+	}
+
+	f := OpenFileWrite(path)
+	out, err := yaml.Marshal(yamlData)
+	if err != nil {
+		log.Fatalf("Failed marshaling updated yaml data.")
+	}
+	_, err = f.Write(out)
+	if err != nil {
+		log.Fatalf("Failed writing updated yaml version to file %s.", path)
+	}
 }
