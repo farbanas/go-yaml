@@ -41,6 +41,17 @@ func ReadYaml(data []byte) interface{} {
 	return out
 }
 
+func writeYaml(yamlData interface{}, f *os.File, path string) {
+	out, err := yaml.Marshal(yamlData)
+	if err != nil {
+		log.Fatalf("Failed marshaling updated yaml data.")
+	}
+	_, err = f.Write(out)
+	if err != nil {
+		log.Fatalf("Failed writing updated yaml version to file %s.", path)
+	}
+}
+
 func GetValue(yamlData interface{}, query string) interface{} {
 	keys := strings.Split(query, ".")
 	for _, key := range keys {
@@ -83,7 +94,7 @@ func SetValue(yamlData interface{}, query string, val string, path string) {
 			mapKeys := p.MapKeys()
 			for _, mapKey := range mapKeys {
 				if mapKey.Interface().(string) == key {
-					if i == len(keys) - 1 {
+					if i == len(keys)-1 {
 						p.SetMapIndex(mapKey, reflect.ValueOf(val))
 					}
 					p = p.MapIndex(mapKey)
@@ -93,16 +104,24 @@ func SetValue(yamlData interface{}, query string, val string, path string) {
 					p = temp
 				}
 			}
+		} else if p.Kind() == reflect.Slice {
+			index, err := strconv.Atoi(key)
+			if err != nil {
+				log.Println("Current yaml level is array, but index not provided in query.")
+				log.Fatalf("Current level: %v", p.Interface())
+			}
+			p = p.Index(index)
+			if i == len(keys)-1 {
+				p.Set(reflect.ValueOf(val))
+			}
+			v := reflect.ValueOf(p.Interface())
+			temp := reflect.New(v.Type()).Elem()
+			temp.Set(v)
+			p = temp
 		}
 	}
 
 	f := OpenFileWrite(path)
-	out, err := yaml.Marshal(yamlData)
-	if err != nil {
-		log.Fatalf("Failed marshaling updated yaml data.")
-	}
-	_, err = f.Write(out)
-	if err != nil {
-		log.Fatalf("Failed writing updated yaml version to file %s.", path)
-	}
+	writeYaml(yamlData, f, path)
+	f.Close()
 }
