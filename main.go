@@ -6,10 +6,10 @@ import (
 	"os"
 )
 
-func flagParser() (string, string, string){
+func flagParser() (string, string, string) {
 	action := flag.Arg(0)
 	fp := flag.String("filePath", "", "Path to yaml file.")
-	key := flag.String("key", "", "Yaml key for the value to get/set. Ex. first.second will get " +
+	key := flag.String("key", "", "Yaml key for the value to get/set. Ex. first.second will get "+
 		"the value of key second that is a subkey of first.")
 	var val string
 	if action == "set" {

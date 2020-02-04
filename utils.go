@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
@@ -40,7 +40,7 @@ func ReadYaml(data []byte) interface{} {
 	return out
 }
 
-func GetValue(yamlData interface{}, query string)	{
+func GetValue(yamlData interface{}, query string) {
 	keys := strings.Split(query, ".")
 	for _, key := range keys {
 		yamlData = yamlData.(map[interface{}]interface{})[key]
