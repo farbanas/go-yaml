@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/farbanas/go-yaml/yamlparser"
+	"github.com/farbanas/yags/yamlparser"
 	"log"
 	"os"
 )
@@ -41,7 +41,7 @@ func parseRequiredFlags(flagSet *flag.FlagSet, flagNames []string, flags ...*str
 	}
 	if exit {
 		fmt.Println()
-		fmt.Println("Usage of go-yaml:")
+		fmt.Println("Usage of yags:")
 		flagSet.PrintDefaults()
 		os.Exit(2)
 	}
@@ -50,7 +50,7 @@ func parseRequiredFlags(flagSet *flag.FlagSet, flagNames []string, flags ...*str
 func parseSubcommand(getFlagSet *flag.FlagSet, setFlagSet *flag.FlagSet) {
 	if len(os.Args) < 2 {
 		fmt.Println("Error: subcommand has to be `get` or `set`.")
-		fmt.Println("Usage: go-yaml (get|set)")
+		fmt.Println("Usage: yags (get|set)")
 		os.Exit(1)
 	}
 
@@ -67,7 +67,7 @@ func parseSubcommand(getFlagSet *flag.FlagSet, setFlagSet *flag.FlagSet) {
 		}
 	case "default":
 		fmt.Println("Error: subcommand has to be `get` or `set`.")
-		fmt.Println("Usage: go-yaml (get|set)")
+		fmt.Println("Usage: yags (get|set)")
 		os.Exit(1)
 	}
 }
@@ -77,7 +77,7 @@ func main() {
 	data := yamlparser.OpenFileRead(fp)
 	yamlData := yamlparser.ReadYaml(data)
 	if os.Args[1] == "get" {
-		result := yamlparser.GetValueReflect(yamlData, query)
+		result := yamlparser.GetValue(yamlData, query)
 		fmt.Printf("Result: %v\n", result)
 	} else if os.Args[1] == "set" {
 		yamlparser.SetValue(yamlData, query, val, fp)
