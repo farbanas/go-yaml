@@ -1,4 +1,5 @@
 # YAGS
+<!-- vim-markdown-toc -->
 Yags is a simple YAML getter/setter written in GO. 
 
 Current features are:
@@ -10,6 +11,13 @@ TODO:
 - [ ] Set complex values instead of only strings
 - [ ] Better logging
 - [ ] Rewrite set to not use reflect
+
+
+* [Installation](#installation)
+* [Usage](#usage)
+	* [Get](#get)
+	* [Set](#set)
+
 
 ## Installation
 To install `yags` run the following command.
