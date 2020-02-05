@@ -1,4 +1,4 @@
-package main
+package yamlparser
 
 import (
 	"fmt"
@@ -83,6 +83,38 @@ func GetValue(yamlData interface{}, query string) interface{} {
 	return yamlData
 }
 
+func GetValueReflect(yamlData interface{}, query string) interface{} {
+	data := yamlData.(map[interface{}]interface{})
+	p := reflect.ValueOf(&data).Elem()
+
+	keys := strings.Split(query, ".")
+
+	for _, key := range keys {
+		if p.Kind() == reflect.Map {
+			mapKeys := p.MapKeys()
+			for _, mapKey := range mapKeys {
+				if mapKey.Interface().(string) == key {
+					p = p.MapIndex(mapKey)
+					v := reflect.ValueOf(p.Interface())
+					p = reflect.New(v.Type()).Elem()
+					p.Set(v)
+				}
+			}
+		} else if p.Kind() == reflect.Slice {
+			index, err := strconv.Atoi(key)
+			if err != nil {
+				log.Println("Current yaml level is array, but index not provided in query.")
+				log.Fatalf("Current level: %v", p.Interface())
+			}
+			p = p.Index(index)
+			v := reflect.ValueOf(p.Interface())
+			p = reflect.New(v.Type()).Elem()
+			p.Set(v)
+		}
+	}
+	return p.Interface()
+}
+
 func SetValue(yamlData interface{}, query string, val string, path string) {
 	data := yamlData.(map[interface{}]interface{})
 	p := reflect.ValueOf(&data).Elem()
@@ -99,9 +131,8 @@ func SetValue(yamlData interface{}, query string, val string, path string) {
 					}
 					p = p.MapIndex(mapKey)
 					v := reflect.ValueOf(p.Interface())
-					temp := reflect.New(v.Type()).Elem()
-					temp.Set(v)
-					p = temp
+					p = reflect.New(v.Type()).Elem()
+					p.Set(v)
 				}
 			}
 		} else if p.Kind() == reflect.Slice {
@@ -115,9 +146,8 @@ func SetValue(yamlData interface{}, query string, val string, path string) {
 				p.Set(reflect.ValueOf(val))
 			}
 			v := reflect.ValueOf(p.Interface())
-			temp := reflect.New(v.Type()).Elem()
-			temp.Set(v)
-			p = temp
+			p = reflect.New(v.Type()).Elem()
+			p.Set(v)
 		}
 	}
 

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/farbanas/go-yaml/yamlparser"
 	"log"
 	"os"
 )
@@ -73,12 +74,12 @@ func parseSubcommand(getFlagSet *flag.FlagSet, setFlagSet *flag.FlagSet) {
 
 func main() {
 	fp, query, val := flagParser()
-	data := OpenFileRead(fp)
-	yamlData := ReadYaml(data)
+	data := yamlparser.OpenFileRead(fp)
+	yamlData := yamlparser.ReadYaml(data)
 	if os.Args[1] == "get" {
-		result := GetValue(yamlData, "last.3.three.0.three1")
+		result := yamlparser.GetValueReflect(yamlData, query)
 		fmt.Printf("Result: %v\n", result)
 	} else if os.Args[1] == "set" {
-		SetValue(yamlData, query, val, fp)
+		yamlparser.SetValue(yamlData, query, val, fp)
 	}
 }

@@ -1,0 +1,14 @@
+potatoes:
+  - soil:
+      through:
+        - true
+        - false
+        - station
+      engineer: true
+      tip: mind
+    percent: true
+    stiff: tight
+  - false
+  - true
+worry: deer
+satellites: record
