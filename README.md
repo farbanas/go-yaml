@@ -6,18 +6,12 @@ Current features are:
 - get any value from any valid yaml file
 - set a value for a key in yaml file
 
-TODO:
-- [ ] When setting, create a key if it does not exist (should be switchable with command line option)
-- [ ] Set complex values instead of only strings
-- [ ] Better logging
-- [ ] Rewrite set to not use reflect
-
-
 ## Table of contents
 * [Installation](#installation)
 * [Usage](#usage)
 	* [Get](#get)
 	* [Set](#set)
+* [Upcoming](#upcoming)
 
 
 ## Installation
@@ -173,3 +167,11 @@ potatoes:
 satellites: record
 worry: deer
 ```
+
+## Upcoming
+- [ ] When setting, create a key if it does not exist (should be switchable with command line option)
+- [ ] Set complex values instead of only strings
+- [ ] Better logging
+- [ ] Rewrite set to not use reflect
+
+
