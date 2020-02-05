@@ -13,20 +13,24 @@ func flagParser() (string, string, string) {
 	setFlagSet := flag.NewFlagSet("set", flag.ExitOnError)
 
 	fpGet := getFlagSet.String("filePath", "", "Path to yaml file.")
-	keyGet := getFlagSet.String("key", "", "Yaml key for the value to get. Ex. first.second will get "+
-		"the value of key second that is a subkey of first.")
+	keyGet := getFlagSet.String("query", "", "Query for the value to get. Query should be in the dot format, " +
+		"for example if you want to set the value of a yaml map entry that is on the third level,\n" +
+		"your query would look something like 'first.second.third'. It also supports array indexes (indexes are 0-indexed)." +
+		" In the case that you have an array,\nyour query would look something like 'first.second.2.third'.")
 
 	fpSet := setFlagSet.String("filePath", "", "Path to yaml file.")
-	keySet := setFlagSet.String("key", "", "Yaml key for the value to set. Ex. first.second will set "+
-		"the value of key second that is a subkey of first.")
-	valSet := setFlagSet.String("value", "", "Value that you want to set.")
+	keySet := setFlagSet.String("query", "", "Query for the value to set. Query should be in the dot format, " +
+		"for example if you want to set the value of a yaml map entry that is on the third level,\n" +
+		"your query would look something like 'first.second.third'. It also supports array indexes (indexes are 0-indexed)." +
+		" In the case that you have an array,\nyour query would look something like 'first.second.2.third'.")
+	valSet := setFlagSet.String("value", "", "Value that you want to set, it will be put as string.")
 
 	parseSubcommand(getFlagSet, setFlagSet)
 	if os.Args[1] == "get" {
-		parseRequiredFlags(getFlagSet, []string{"filePath", "key"}, fpGet, keyGet)
+		parseRequiredFlags(getFlagSet, []string{"filePath", "query"}, fpGet, keyGet)
 		return *fpGet, *keyGet, ""
 	} else {
-		parseRequiredFlags(setFlagSet, []string{"filePath", "key", "value"}, fpSet, keySet, valSet)
+		parseRequiredFlags(setFlagSet, []string{"filePath", "query", "value"}, fpSet, keySet, valSet)
 		return *fpSet, *keySet, *valSet
 	}
 }
@@ -41,7 +45,11 @@ func parseRequiredFlags(flagSet *flag.FlagSet, flagNames []string, flags ...*str
 	}
 	if exit {
 		fmt.Println()
-		fmt.Println("Usage of yags:")
+		if len(flagNames) == 3 {
+			fmt.Println("Usage of yags set:")
+		} else {
+			fmt.Println("Usage of yags get:")
+		}
 		flagSet.PrintDefaults()
 		os.Exit(2)
 	}
@@ -78,7 +86,7 @@ func main() {
 	yamlData := yamlparser.ReadYaml(data)
 	if os.Args[1] == "get" {
 		result := yamlparser.GetValue(yamlData, query)
-		fmt.Printf("Result: %v\n", result)
+		fmt.Println(result)
 	} else if os.Args[1] == "set" {
 		yamlparser.SetValue(yamlData, query, val, fp)
 	}
