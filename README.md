@@ -13,6 +13,7 @@ TODO:
 - [ ] Rewrite set to not use reflect
 
 
+## Table of contents
 * [Installation](#installation)
 * [Usage](#usage)
 	* [Get](#get)
