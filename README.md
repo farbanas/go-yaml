@@ -172,6 +172,5 @@ worry: deer
 - [ ] When setting, create a key if it does not exist (should be switchable with command line option)
 - [ ] Set complex values instead of only strings
 - [ ] Better logging
-- [ ] Rewrite set to not use reflect
 
 

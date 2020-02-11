@@ -54,16 +54,16 @@ func TestSetValue(t *testing.T) {
 		args args
 		want interface{}
 	}{
-		{"Set root value 1", args{yamlData: yamlData, query: "worry", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set root value 2", args{yamlData: yamlData, query: "satellites", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set array value 1", args{yamlData: yamlData, query: "potatoes.0.soil.through", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set array value 2", args{yamlData: yamlData, query: "potatoes.1", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set array value 3", args{yamlData: yamlData, query: "potatoes.2", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set array value 4", args{yamlData: yamlData, query: "potatoes.0.soil.through.2", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set leaf value 1", args{yamlData: yamlData, query: "potatoes.0.soil.engineer", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set leaf value 2", args{yamlData: yamlData, query: "potatoes.0.soil.tip", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set leaf value 3", args{yamlData: yamlData, query: "potatoes.0.percent", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
-		{"Set leaf value 3", args{yamlData: yamlData, query: "potatoes.0.stiff", val:"DarthVader", path:"test.yaml"}, "DarthVader"},
+		{"Set root value 1", args{yamlData: yamlData, query: "worry", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set root value 2", args{yamlData: yamlData, query: "satellites", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set array value 1", args{yamlData: yamlData, query: "potatoes.0.soil.through", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set array value 2", args{yamlData: yamlData, query: "potatoes.1", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set array value 3", args{yamlData: yamlData, query: "potatoes.2", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set array value 4", args{yamlData: yamlData, query: "potatoes.0.soil.through.2", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set leaf value 1", args{yamlData: yamlData, query: "potatoes.0.soil.engineer", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set leaf value 2", args{yamlData: yamlData, query: "potatoes.0.soil.tip", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set leaf value 3", args{yamlData: yamlData, query: "potatoes.0.percent", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
+		{"Set leaf value 3", args{yamlData: yamlData, query: "potatoes.0.stiff", val: "DarthVader", path: "test.yaml"}, "DarthVader"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -89,6 +89,16 @@ func BenchmarkGetValue(b *testing.B) {
 	}
 }
 
+func BenchmarkGetValueReflect(b *testing.B) {
+	data := OpenFileRead("test.yaml")
+	yamlData := ReadYaml(data)
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		GetValueReflect(yamlData, "potatoes.0.soil.through.2")
+	}
+}
+
 func BenchmarkSetValue(b *testing.B) {
 	data := OpenFileRead("test.yaml")
 	yamlData := ReadYaml(data)
@@ -96,5 +106,15 @@ func BenchmarkSetValue(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		SetValue(yamlData, "potatoes.0.soil.through.2", "station", "test.yaml")
+	}
+}
+
+func BenchmarkSetValueReflect(b *testing.B) {
+	data := OpenFileRead("test.yaml")
+	yamlData := ReadYaml(data)
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		SetValueReflect(yamlData, "potatoes.0.soil.through.2", "station", "test.yaml")
 	}
 }

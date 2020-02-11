@@ -53,55 +53,111 @@ func writeYaml(yamlData interface{}, f *os.File, path string) {
 }
 
 func GetValue(yamlData interface{}, query string) interface{} {
-	keys := strings.Split(query, ".")
-	for _, key := range keys {
-		var ok bool
+	var dataMap map[interface{}]interface{} = nil
+	var dataArray []interface{} = nil
 
-		if intKey, err := strconv.Atoi(key); err == nil {
-			var temp []interface{}
-			temp, ok = yamlData.([]interface{})
-			if ok {
-				if len(temp) > intKey {
-					yamlData = temp[intKey]
-				} else {
-					log.Fatalf("Error: index out of range [%d] for array of length %d", intKey, len(temp))
-				}
+	keys := strings.Split(query, ".")
+
+	for _, key := range keys {
+		dataMap, dataArray = mapOrArray(yamlData)
+		if dataMap != nil {
+			if s, ok := dataMap[key]; ok {
+				yamlData = s
 			} else {
-				log.Printf("Error: got array index, but current element is not an array.")
-				log.Fatalf("Current element: %v", yamlData)
+				log.Fatalf("Key %s doesn't exist.", key)
 			}
-		} else {
-			temp, ok := yamlData.(map[interface{}]interface{})
-			if ok {
-				yamlData = temp[key]
-			} else {
-				log.Printf("Error: got key, but current element is not a map.")
-				log.Fatalf("Current element: %v", yamlData)
+		} else if dataArray != nil {
+			index, err := strconv.Atoi(key)
+			if err != nil {
+				log.Println("Current yaml level is array, but index not provided in query.")
+				log.Fatalf("Current level: %v", dataArray)
 			}
+			yamlData = dataArray[index]
 		}
 	}
 	return yamlData
 }
 
+func GetValueReflect(yamlData interface{}, query string) interface{} {
+	p := reflect.ValueOf(&yamlData).Elem()
+
+	keys := strings.Split(query, ".")
+
+	for _, key := range keys {
+		if p.Kind() == reflect.Map {
+			mapKey := reflect.ValueOf(key)
+			p = p.MapIndex(reflect.ValueOf(mapKey))
+			v := reflect.ValueOf(p.Interface())
+			p = reflect.New(v.Type()).Elem()
+			p.Set(v)
+		} else if p.Kind() == reflect.Slice {
+			index, err := strconv.Atoi(key)
+			if err != nil {
+				log.Println("Current yaml level is array, but index not provided in query.")
+				log.Fatalf("Current level: %v", p.Interface())
+			}
+			p = p.Index(index)
+			v := reflect.ValueOf(p.Interface())
+			p = reflect.New(v.Type()).Elem()
+			p.Set(v)
+		}
+	}
+	return p
+}
+
 func SetValue(yamlData interface{}, query string, val interface{}, path string) {
-	data := yamlData.(map[interface{}]interface{})
-	p := reflect.ValueOf(&data).Elem()
+	var dataMap map[interface{}]interface{} = nil
+	var dataArray []interface{} = nil
+	tempIntf := yamlData
+
+	keys := strings.Split(query, ".")
+
+	for i, key := range keys {
+		dataMap, dataArray = mapOrArray(tempIntf)
+		if dataMap != nil {
+			if s, ok := dataMap[key]; ok {
+				if i == len(keys)-1 {
+					dataMap[key] = val
+				} else {
+					tempIntf = s
+				}
+			} else {
+				log.Fatalf("Key %s doesn't exist.", key)
+			}
+		} else if dataArray != nil {
+			index, err := strconv.Atoi(key)
+			if err != nil {
+				log.Println("Current yaml level is array, but index not provided in query.")
+				log.Fatalf("Current level: %v", dataArray)
+			}
+			if i == len(keys)-1 {
+				dataArray[index] = val
+			} else {
+				tempIntf = dataArray[index]
+			}
+		}
+	}
+
+	f := OpenFileWrite(path)
+	writeYaml(yamlData, f, path)
+	f.Close()
+}
+
+func SetValueReflect(yamlData interface{}, query string, val interface{}, path string) {
+	p := reflect.ValueOf(&yamlData).Elem()
 
 	keys := strings.Split(query, ".")
 
 	for i, key := range keys {
 		if p.Kind() == reflect.Map {
-			mapKeys := p.MapKeys()
-			for _, mapKey := range mapKeys {
-				if mapKey.Interface().(string) == key {
-					if i == len(keys)-1 {
-						p.SetMapIndex(mapKey, reflect.ValueOf(val))
-					}
-					p = p.MapIndex(mapKey)
-					v := reflect.ValueOf(p.Interface())
-					p = reflect.New(v.Type()).Elem()
-					p.Set(v)
-				}
+			mapKey := reflect.ValueOf(key)
+			if i == len(keys)-1 {
+				p.SetMapIndex(reflect.ValueOf(mapKey), reflect.ValueOf(val))
+			} else {
+				p = p.MapIndex(reflect.ValueOf(mapKey))
+				v := reflect.ValueOf(p.Interface())
+				p = reflect.New(v.Type()).Elem()
+				p.Set(v)
 			}
 		} else if p.Kind() == reflect.Slice {
 			index, err := strconv.Atoi(key)
@@ -112,14 +168,27 @@ func SetValue(yamlData interface{}, query string, val interface{}, path string) 
 			p = p.Index(index)
 			if i == len(keys)-1 {
 				p.Set(reflect.ValueOf(val))
+			} else {
+				v := reflect.ValueOf(p.Interface())
+				p = reflect.New(v.Type()).Elem()
+				p.Set(v)
 			}
-			v := reflect.ValueOf(p.Interface())
-			p = reflect.New(v.Type()).Elem()
-			p.Set(v)
 		}
 	}
 
 	f := OpenFileWrite(path)
 	writeYaml(yamlData, f, path)
 	f.Close()
+}
+
+func mapOrArray(data interface{}) (dataMap map[interface{}]interface{}, dataArray []interface{}) {
+	var ok bool
+	dataMap, ok = data.(map[interface{}]interface{})
+	if !ok {
+		dataArray, ok = data.([]interface{})
+		if !ok {
+			return nil, nil
+		}
+	}
+	return
 }

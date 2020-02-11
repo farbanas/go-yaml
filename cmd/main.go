@@ -13,15 +13,15 @@ func flagParser() (string, string, string) {
 	setFlagSet := flag.NewFlagSet("set", flag.ExitOnError)
 
 	fpGet := getFlagSet.String("filePath", "", "Path to yaml file.")
-	keyGet := getFlagSet.String("query", "", "Query for the value to get. Query should be in the dot format, " +
-		"for example if you want to set the value of a yaml map entry that is on the third level,\n" +
-		"your query would look something like 'first.second.third'. It also supports array indexes (indexes are 0-indexed)." +
+	keyGet := getFlagSet.String("query", "", "Query for the value to get. Query should be in the dot format, "+
+		"for example if you want to set the value of a yaml map entry that is on the third level,\n"+
+		"your query would look something like 'first.second.third'. It also supports array indexes (indexes are 0-indexed)."+
 		" In the case that you have an array,\nyour query would look something like 'first.second.2.third'.")
 
 	fpSet := setFlagSet.String("filePath", "", "Path to yaml file.")
-	keySet := setFlagSet.String("query", "", "Query for the value to set. Query should be in the dot format, " +
-		"for example if you want to set the value of a yaml map entry that is on the third level,\n" +
-		"your query would look something like 'first.second.third'. It also supports array indexes (indexes are 0-indexed)." +
+	keySet := setFlagSet.String("query", "", "Query for the value to set. Query should be in the dot format, "+
+		"for example if you want to set the value of a yaml map entry that is on the third level,\n"+
+		"your query would look something like 'first.second.third'. It also supports array indexes (indexes are 0-indexed)."+
 		" In the case that you have an array,\nyour query would look something like 'first.second.2.third'.")
 	valSet := setFlagSet.String("value", "", "Value that you want to set, it will be put as string.")
 
